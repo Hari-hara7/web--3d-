@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Particle System Background</title>
+  <title>Responsive Rotating Cube Grid Background</title>
   <style>
     body, html {
       margin: 0;
@@ -77,34 +77,45 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Create particles
-    const particleCount = 1000;
-    const particles = new THREE.BufferGeometry();
-    const particleVertices = [];
+    // Create a grid of cubes
+    const gridSize = 10;
+    const cubeSize = 1;
+    const cubes = [];
 
-    for (let i = 0; i < particleCount; i++) {
-      const x = (Math.random() - 0.5) * 2000;
-      const y = (Math.random() - 0.5) * 2000;
-      const z = (Math.random() - 0.5) * 2000;
-      particleVertices.push(x, y, z);
+    for (let x = -gridSize; x <= gridSize; x++) {
+      for (let y = -gridSize; y <= gridSize; y++) {
+        for (let z = -gridSize; z <= gridSize; z++) {
+          const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+          const material = new THREE.MeshStandardMaterial({ color: 0x44aa88 });
+          const cube = new THREE.Mesh(geometry, material);
+          cube.position.set(x * cubeSize * 1.5, y * cubeSize * 1.5, z * cubeSize * 1.5);
+          scene.add(cube);
+          cubes.push(cube);
+        }
+      }
     }
 
-    particles.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
 
-    const particleMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+    const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+    pointLight.position.set(10, 10, 10);
+    scene.add(pointLight);
 
-    const particleSystem = new THREE.Points(particles, particleMaterial);
-    scene.add(particleSystem);
+    camera.position.z = 30;
 
     // Animation
-    camera.position.z = 5;
-
-    const animateParticles = () => {
-      gsap.to(particleSystem.rotation, {
-        duration: 20,
-        y: Math.PI * 2,
-        repeat: -1,
-        ease: "none"
+    const animateCubes = () => {
+      cubes.forEach((cube, index) => {
+        gsap.to(cube.rotation, {
+          duration: 4,
+          x: "+=6.28",
+          y: "+=6.28",
+          repeat: -1,
+          ease: "power1.inOut",
+          delay: Math.random() * 2
+        });
       });
     };
 
@@ -114,7 +125,7 @@
     };
 
     animate();
-    animateParticles();
+    animateCubes();
 
     // Handle window resize
     window.addEventListener('resize', () => {
